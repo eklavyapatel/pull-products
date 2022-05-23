@@ -1,5 +1,6 @@
 import type { CMSFilters } from '../../types/CMSFilters';
 import type { Product } from './types';
+var Airtable = require('airtable');
 
 /**
  * Populate CMS Data from an external API.
@@ -24,10 +25,11 @@ window.fsAttributes.push([
     // Remove existing items
     listInstance.clearItems();
 
-    // Create the new items
-    const newItems = products.map((product) => createItem(product, itemTemplateElement));
-
+    const newItems = products.map((product) => {
+      return createItem(product, itemTemplateElement)
+    })
     // Populate the list
+
     await listInstance.addItems(newItems);
 
     // Get the template filter
@@ -62,14 +64,50 @@ window.fsAttributes.push([
  * @returns An array of {@link Product}.
  */
 const fetchProducts = async () => {
-  try {
-    const response = await fetch('https://fakestoreapi.com/products');
-    const data: Product[] = await response.json();
+  return new Promise((resolve, reject) => {
+    var base = new Airtable({ apiKey: 'keyVaqaXzXRDSsa31' }).base('app6CABYWEh8dxlQd');
+    let data: Product[] = [];
 
-    return data;
-  } catch (error) {
-    return [];
-  }
+    base('Product Details').select({
+      view: "Grid view"
+    })
+      .eachPage(function page(records: any[], fetchNextPage: any) {
+        try {
+          records.forEach(function (record: any) {
+            
+            let image = ""
+            try {
+              image = record.get('Product Image')[0].url
+            } catch(error) {
+
+            }
+
+            const item: Product = {
+              partNumber: record?.get('Part Number')??" ",
+              description: record?.get('Description')?? " ",
+              productCategory: record?.get('Product Category')?? " ",
+              productSegment: record?.get('Product Segment')?? " ",
+              ampRating: record?.get('Amp Rating')?? " ",
+              voltage: record?.get('Voltage')?? " ",
+              characteristics: record?.get('Characteristics')?? " ",
+              size: record?.get('Size')?? " ",
+              individualDatasheet: record?.get('Individual Datasheet')?? " ",
+              sectionDatasheet: record?.get('Section Datasheet')?? " ",
+              image: image,
+            };
+
+            data.push(item);
+          });
+        } catch (e) { console.log('error inside eachPage => ', e) }
+        fetchNextPage();
+      }, function done(err: any) {
+        if (err) {
+          console.error(err);
+          reject(err)
+        }
+        resolve(data)
+      })
+  })
 };
 
 /**
@@ -80,20 +118,35 @@ const fetchProducts = async () => {
  * @returns A new Collection Item element.
  */
 const createItem = (product: Product, templateElement: HTMLDivElement) => {
+
   // Clone the template element
   const newItem = templateElement.cloneNode(true) as HTMLDivElement;
 
   // Query inner elements
   const image = newItem.querySelector<HTMLImageElement>('[data-element="image"]');
-  const title = newItem.querySelector<HTMLHeadingElement>('[data-element="title"]');
-  const category = newItem.querySelector<HTMLDivElement>('[data-element="category"]');
+  const sectionDatasheet = newItem.querySelector<HTMLAnchorElement>('[data-element="section datasheet"]');
+  const individualDatasheet = newItem.querySelector<HTMLAnchorElement>('[data-element="individual datasheet"]');
+  const partNumber = newItem.querySelector<HTMLDivElement>('[data-element="part number"]');
+  const productCategory = newItem.querySelector<HTMLDivElement>('[data-element="product category"]');
+  const productSegment = newItem.querySelector<HTMLDivElement>('[data-element="product segment"]');
   const description = newItem.querySelector<HTMLParagraphElement>('[data-element="description"]');
+  const ampRating = newItem.querySelector<HTMLParagraphElement>('[data-element="amp rating"]');
+  const voltage = newItem.querySelector<HTMLParagraphElement>('[data-element="voltage"]');
+  const characteristics = newItem.querySelector<HTMLParagraphElement>('[data-element="characteristics"]');
+  const size = newItem.querySelector<HTMLParagraphElement>('[data-element="size"]');
 
   // Populate inner elements
   if (image) image.src = product.image;
-  if (title) title.textContent = product.title;
-  if (category) category.textContent = product.category;
+  if (individualDatasheet) individualDatasheet.href = product.individualDatasheet;
+  if (sectionDatasheet) sectionDatasheet.href = product.sectionDatasheet;
+  if (partNumber) partNumber.textContent = product.partNumber;
+  if (productCategory) productCategory.textContent = product.productCategory;
+  if (productSegment) productSegment.textContent = product.productSegment;
   if (description) description.textContent = product.description;
+  if (ampRating) ampRating.textContent = product.ampRating;
+  if (voltage) voltage.textContent = product.voltage;
+  if (characteristics) characteristics.textContent = product.characteristics;
+  if (size) size.textContent = product.size;
 
   return newItem;
 };
@@ -105,10 +158,10 @@ const createItem = (product: Product, templateElement: HTMLDivElement) => {
  * @returns An array of {@link Product} categories.
  */
 const collectCategories = (products: Product[]) => {
-  const categories: Set<Product['category']> = new Set();
+  const categories: Set<Product['productCategory']> = new Set();
 
-  for (const { category } of products) {
-    categories.add(category);
+  for (const { productCategory } of products) {
+    categories.add(productCategory);
   }
 
   return [...categories];
@@ -121,7 +174,7 @@ const collectCategories = (products: Product[]) => {
  *
  * @returns A new category radio filter.
  */
-const createFilter = (category: Product['category'], templateElement: HTMLLabelElement) => {
+const createFilter = (category: Product['productCategory'], templateElement: HTMLLabelElement) => {
   // Clone the template element
   const newFilter = templateElement.cloneNode(true) as HTMLLabelElement;
 
@@ -137,3 +190,4 @@ const createFilter = (category: Product['category'], templateElement: HTMLLabelE
 
   return newFilter;
 };
+
