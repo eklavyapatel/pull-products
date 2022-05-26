@@ -1,5 +1,5 @@
 import type { CMSFilters } from '../../types/CMSFilters';
-import type { Product } from './types';
+import type { Product, productCategory } from './types';
 var Airtable = require('airtable');
 
 /**
@@ -33,7 +33,7 @@ window.fsAttributes.push([
     await listInstance.addItems(newItems);
 
     // Get the template filter
-    const filterTemplateElement = filtersInstance.form.querySelector<HTMLLabelElement>('[data-element="filter"]');
+    const filterTemplateElement = filtersInstance.form.querySelector<HTMLLabelElement>('[data-element="product category"]');
     if (!filterTemplateElement) return;
 
     // Get the parent wrapper
@@ -109,7 +109,7 @@ const fetchProducts = async () => {
       })
   })
 };
-
+ 
 /**
  * Creates an item from the template element.
  * @param product The product data to create the item from.
@@ -127,8 +127,8 @@ const createItem = (product: Product, templateElement: HTMLDivElement) => {
   const sectionDatasheet = newItem.querySelector<HTMLAnchorElement>('[data-element="section datasheet"]');
   const individualDatasheet = newItem.querySelector<HTMLAnchorElement>('[data-element="individual datasheet"]');
   const partNumber = newItem.querySelector<HTMLDivElement>('[data-element="part number"]');
-  const productCategory = newItem.querySelector<HTMLDivElement>('[data-element="product category"]');
-  const productSegment = newItem.querySelector<HTMLDivElement>('[data-element="product segment"]');
+  const productCategory = newItem.querySelector<HTMLDivElement>('[data-element="category"]');
+  const productSegment = newItem.querySelector<HTMLDivElement>('[data-element="segment"]');
   const description = newItem.querySelector<HTMLParagraphElement>('[data-element="description"]');
   const ampRating = newItem.querySelector<HTMLParagraphElement>('[data-element="amp rating"]');
   const voltage = newItem.querySelector<HTMLParagraphElement>('[data-element="voltage"]');

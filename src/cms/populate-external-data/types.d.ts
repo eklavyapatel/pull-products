@@ -12,9 +12,12 @@ export interface Product {
   sectionDatasheet: string;
 }
 
-const enum category {
-  Electronics = 'electronics',
-  Jewelery = 'jewelery',
-  MenSClothing = "men's clothing",
-  WomenSClothing = "women's clothing",
+const enum productCategory {
+  V = 'V - Fuses',
+  UR_NH = 'UR - Ultra Rapid / NH - Low Voltage',
+  HH = "HH - High Voltage",
+  NH = "NH - Low Voltage",
+  UR = "UR - Ultra Rapid",
+  D = "D - European Standard",
+  G = "G - Miniature",
 }
